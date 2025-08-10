@@ -9,6 +9,7 @@
     font-family: 'Inter', sans-serif;
     background: #f3f7ff;
     margin: 0; padding: 0;
+    color: #111;
   }
   header {
     background-color: #004aad;
@@ -34,7 +35,7 @@
   main {
     max-width: 900px;
     margin: 2rem auto;
-    padding: 0 1rem;
+    padding: 0 1rem 3rem;
   }
   h1 {
     color: #004aad;
@@ -42,19 +43,88 @@
   }
   .user-list {
     background: white;
-    padding: 1rem;
+    padding: 1rem 1.5rem;
     border-radius: 8px;
     box-shadow: 0 0 15px #ccc;
   }
   .user-card {
     border-bottom: 1px solid #ddd;
     padding: 0.8rem 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
   }
   .user-card:last-child {
     border-bottom: none;
   }
   .user-card strong {
     color: #004aad;
+  }
+  .user-details {
+    flex-grow: 1;
+  }
+
+  /* Style checkboxes */
+  .user-card input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #004aad; /* modern checkbox color */
+  }
+
+  /* Match controls area */
+  .match-controls {
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 0 15px #ccc;
+    justify-content: flex-start;
+  }
+  button#createMatchBtn {
+    background-color: #004aad;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 74, 173, 0.4);
+  }
+  button#createMatchBtn:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  #matchStatus {
+    font-weight: 600;
+    color: #004aad;
+    min-width: 200px;
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 600px) {
+    .user-card {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .match-controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    button#createMatchBtn {
+      width: 100%;
+      padding: 0.8rem;
+    }
+    #matchStatus {
+      min-width: auto;
+      margin-top: 0.5rem;
+    }
   }
 </style>
 </head>
@@ -75,11 +145,14 @@
   <div class="user-list" id="userList">
     <!-- User cards inserted here -->
   </div>
+
+  <div class="match-controls" style="display:none;" id="matchControls">
+    <button id="createMatchBtn" disabled>Create Match</button>
+    <div id="matchStatus" aria-live="polite"></div>
+  </div>
 </main>
 
 <script>
-  // Highlight active nav link handled already by active class in HTML for dashboard
-
   // Logout handler
   const logoutLink = document.getElementById('logoutLink');
   logoutLink.addEventListener('click', e => {
@@ -88,28 +161,81 @@
     window.location.href = 'login.html';
   });
 
-  // Load users from localStorage and display
   const userList = document.getElementById('userList');
+  const matchControls = document.getElementById('matchControls');
+  const createMatchBtn = document.getElementById('createMatchBtn');
+  const matchStatus = document.getElementById('matchStatus');
+
   const users = JSON.parse(localStorage.getItem('users')) || [];
 
-  if(users.length === 0){
-    userList.innerHTML = '<p>No users registered yet.</p>';
-  } else {
+  // Keep track of selected user indexes or ids
+  let selectedUsers = new Set();
+
+  function renderUsers(){
+    if(users.length === 0){
+      userList.innerHTML = '<p>No users registered yet.</p>';
+      matchControls.style.display = 'none';
+      return;
+    }
     userList.innerHTML = '';
-    users.forEach(user => {
+    users.forEach((user, index) => {
       const div = document.createElement('div');
       div.className = 'user-card';
       div.innerHTML = `
-        <strong>${user.name}</strong> (${user.email})<br />
-        Phone: ${user.phone} | City: ${user.city} | Age Range: ${user.ageRange}<br />
-        Wants kids: ${user.wantKids}<br />
-        <em>Non-negotiables:</em> ${user.nonNegotiables}<br />
-        <em>Ideal Partner:</em> ${user.idealPartner}
+        <input type="checkbox" id="userCheckbox${index}" data-index="${index}" />
+        <div class="user-details">
+          <label for="userCheckbox${index}">
+            <strong>${user.name}</strong> (${user.email})<br />
+            Phone: ${user.phone} | City: ${user.city} | Age Range: ${user.ageRange}<br />
+            Wants kids: ${user.wantKids}<br />
+            <em>Non-negotiables:</em> ${user.nonNegotiables}<br />
+            <em>Ideal Partner:</em> ${user.idealPartner}
+          </label>
+        </div>
       `;
       userList.appendChild(div);
     });
+    matchControls.style.display = 'flex';
+    attachCheckboxListeners();
   }
-</script>
 
-</body>
-</html>
+  function attachCheckboxListeners(){
+    selectedUsers.clear();
+    matchStatus.textContent = '';
+    createMatchBtn.disabled = true;
+
+    const checkboxes = userList.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+      cb.addEventListener('change', e => {
+        const idx = e.target.dataset.index;
+        if(e.target.checked){
+          selectedUsers.add(idx);
+        } else {
+          selectedUsers.delete(idx);
+        }
+        createMatchBtn.disabled = selectedUsers.size < 2;
+      });
+    });
+  }
+
+  createMatchBtn.addEventListener('click', () => {
+    if(selectedUsers.size < 2){
+      alert('Select at least two users to create a match.');
+      return;
+    }
+
+    // Create the match object, here stored in localStorage for demo
+    const matches = JSON.parse(localStorage.getItem('matches')) || [];
+
+    const matchedUsers = Array.from(selectedUsers).map(i => users[i]);
+
+    const newMatch = {
+      id: Date.now(),
+      users: matchedUsers,
+      createdAt: new Date().toISOString()
+    };
+
+    matches.push(newMatch);
+    localStorage.setItem('matches', JSON.stringify(matches));
+
+    matchStatus.textContent = `✅ Match created with ${matchedUsers.lengt
