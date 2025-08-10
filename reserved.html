@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Matchmaker | Reserved Matches</title>
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f3f7ff;
+    margin: 0; padding: 0;
+  }
+  header {
+    background-color: #004aad;
+    color: white;
+    padding: 1rem 2rem;
+  }
+  nav {
+    display: flex;
+    justify-content: flex-start;
+    gap: 1rem;
+  }
+  nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+  nav a:hover, nav a.active {
+    background-color: #00337a;
+  }
+  main {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  h1 {
+    color: #004aad;
+    margin-bottom: 1rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 0 15px #ccc;
+  }
+  th, td {
+    padding: 0.8rem;
+    border: 1px solid #ccc;
+    text-align: left;
+  }
+  button {
+    background-color: #004aad;
+    color: white;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #00337a;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="reserved.html" class="active">Reserved Matches</a>
+    <a href="userRegistration.html">User Registration</a>
+    <a href="admin.html">Admin Panel</a>
+    <a href="#" id="logoutLink">Logout</a>
+  </nav>
+</header>
+
+<main>
+  <h1>Reserved Matches</h1>
+  <table id="matchesTable">
+    <thead>
+      <tr>
+        <th>User 1</th>
+        <th>User 2</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</main>
+
+<script>
+  const logoutLink = document.getElementById('logoutLink');
+  logoutLink.addEventListener('click', e => {
+    e.preventDefault();
+    localStorage.removeItem('loggedInUser');
+    window.location.href = 'login.html';
+  });
+
+  const matchesTableBody = document.querySelector('#matchesTable tbody');
+  const reservedMatches = JSON.parse(localStorage.getItem('reservedMatches')) || [];
+
+  if (reservedMatches.length === 0) {
+    matchesTableBody.innerHTML = '<tr><td colspan="2">No reserved matches yet.</td></tr>';
+  } else {
+    matchesTableBody.innerHTML = '';
+    reservedMatches.forEach(match => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${match.user1}</td>
+        <td>${match.user2}</td>
+      `;
+      matchesTableBody.appendChild(tr);
+    });
+  }
+</script>
+
+</body>
+</html>

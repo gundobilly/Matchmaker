@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Matchmaker | User Registration</title>
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f3f7ff;
+    margin: 0; padding: 0;
+  }
+  header {
+    background-color: #004aad;
+    color: white;
+    padding: 1rem 2rem;
+  }
+  nav {
+    display: flex;
+    justify-content: flex-start;
+    gap: 1rem;
+  }
+  nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+  nav a:hover, nav a.active {
+    background-color: #00337a;
+  }
+  main {
+    max-width: 400px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  h2 {
+    text-align: center;
+    color: #004aad;
+    margin-bottom: 1.5rem;
+  }
+  label {
+    display: block;
+    font-weight: 600;
+    margin-top: 1rem;
+  }
+  input, select, textarea {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.3rem;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  textarea {
+    resize: vertical;
+  }
+  button {
+    width: 100%;
+    padding: 0.6rem;
+    margin-top: 1.5rem;
+    background-color: #004aad;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #00337a;
+  }
+  .success-message {
+    margin-top: 1rem;
+    color: green;
+    font-weight: 600;
+    text-align: center;
+  }
+  .error-message {
+    margin-top: 1rem;
+    color: #c00;
+    font-weight: 600;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="reserved.html">Reserved Matches</a>
+    <a href="userRegistration.html" class="active">User Registration</a>
+    <a href="admin.html">Admin Panel</a>
+    <a href="#" id="logoutLink">Logout</a>
+  </nav>
+</header>
+
+<main>
+  <h2>User Registration</h2>
+  <form id="userForm">
+    <label for="name">Full Name</label>
+    <input type="text" id="name" required autocomplete="off" />
+
+    <label for="email">Email Address</label>
+    <input type="email" id="email" required autocomplete="off" />
+
+    <label for="phone">Phone Number</label>
+    <input type="tel" id="phone" required autocomplete="off" pattern="[0-9]{9,15}" title="Enter valid phone number"/>
+
+    <label for="city">City (South Africa)</label>
+    <input type="text" id="city" required autocomplete="off" />
+
+    <label for="ageRange">Preferred Partner Age Range</label>
+    <select id="ageRange" required>
+      <option value="">Select age range</option>
+      <option value="18-25">18-25</option>
+      <option value="26-35">26-35</option>
+      <option value="36-45">36-45</option>
+      <option value="46+">46+</option>
+    </select>
+
+    <label for="wantKids">Do you want to have kids?</label>
+    <select id="wantKids" required>
+      <option value="">Select option</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+      <option value="Maybe">Maybe</option>
+    </select>
+
+    <label for="nonNegotiables">Your Non-negotiables</label>
+    <textarea id="nonNegotiables" rows="3" placeholder="What are your must-haves or deal-breakers?" required></textarea>
+
+    <label for="idealPartner">Describe Your Ideal Partner</label>
+    <textarea id="idealPartner" rows="4" placeholder="Describe your ideal partner" required></textarea>
+
+    <button type="submit">Save Profile</button>
+    <div class="success-message" id="successMsg"></div>
+    <div class="error-message" id="errorMsg"></div>
+  </form>
+</main>
+
+<script>
+  const logoutLink = document.getElementById('logoutLink');
+  logoutLink.addEventListener('click', e => {
+    e.preventDefault();
+    localStorage.removeItem('loggedInUser');
+    window.location.href = 'login.html';
+  });
+
+  const userForm = document.getElementById('userForm');
+  const successMsg = document.getElementById('successMsg');
+  const errorMsg = document.getElementById('errorMsg');
+
+  userForm.addEventListener('submit', e => {
+    e.preventDefault();
+    successMsg.textContent = '';
+    errorMsg.textContent = '';
+
+    const name = userForm.name.value.trim();
+    const email = userForm.email.value.trim().toLowerCase();
+    const phone = userForm.phone.value.trim();
+    const city = userForm.city.value.trim();
+    const ageRange = userForm.ageRange.value;
+    const wantKids = userForm.wantKids.value;
+    const nonNegotiables = userForm.nonNegotiables.value.trim();
+    const idealPartner = userForm.idealPartner.value.trim();
+
+    if (!name || !email || !phone || !city || !ageRange || !wantKids || !nonNegotiables || !idealPartner) {
+      errorMsg.textContent = 'Please fill all fields.';
+      return;
+    }
+
+    const phoneRegex = /^[0-9]{9,15}$/;
+    if (!phoneRegex.test(phone)) {
+      errorMsg.textContent = 'Please enter a valid phone number (9-15 digits).';
+      return;
+    }
+
+    let users = JSON.parse(localStorage.getItem('users')) || [];
+
+    if (users.some(u => u.email === email)) {
+      errorMsg.textContent = 'Email is already registered.';
+      return;
+    }
+
+    users.push({ name, email, phone, city, ageRange, wantKids, nonNegotiables, idealPartner });
+    localStorage.setItem('users', JSON.stringify(users));
+
+    successMsg.textContent = 'Profile saved successfully!';
+    userForm.reset();
+  });
+</script>
+
+</body>
+</html>

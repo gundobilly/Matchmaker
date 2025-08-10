@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Matchmaker | Login</title>
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f3f7ff;
+    margin: 0; padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  main {
+    background: white;
+    padding: 2rem 2.5rem;
+    border-radius: 8px;
+    box-shadow: 0 0 20px #ccc;
+    width: 320px;
+  }
+  h2 {
+    text-align: center;
+    color: #004aad;
+    margin-bottom: 1.5rem;
+  }
+  label {
+    display: block;
+    font-weight: 600;
+    margin-top: 1rem;
+  }
+  input {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.3rem;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  button {
+    width: 100%;
+    padding: 0.6rem;
+    margin-top: 1.5rem;
+    background-color: #004aad;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #00337a;
+  }
+  .error-message {
+    margin-top: 1rem;
+    color: #c00;
+    font-weight: 600;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <h2>Matchmaker Login</h2>
+  <form id="loginForm">
+    <label for="email">Email Address</label>
+    <input type="email" id="email" required autocomplete="off" />
+
+    <label for="password">Password</label>
+    <input type="password" id="password" required autocomplete="off" />
+
+    <button type="submit">Login</button>
+    <div class="error-message" id="errorMsg"></div>
+  </form>
+</main>
+
+<script>
+  const loginForm = document.getElementById('loginForm');
+  const errorMsg = document.getElementById('errorMsg');
+
+  // For demo, assume a simple user list with passwords stored in localStorage
+  // In real app, replace with secure backend auth
+  let users = JSON.parse(localStorage.getItem('users')) || [];
+  // To demo, we add a default admin user with password 'admin123' if none exists
+  if(!localStorage.getItem('adminAdded')){
+    users.push({email: 'admin@matchmaker.com', password: 'admin123', name:'Admin'});
+    localStorage.setItem('users', JSON.stringify(users));
+    localStorage.setItem('adminAdded', 'true');
+  }
+
+  loginForm.addEventListener('submit', e => {
+    e.preventDefault();
+    errorMsg.textContent = '';
+
+    const email = loginForm.email.value.trim().toLowerCase();
+    const password = loginForm.password.value;
+
+    const user = users.find(u => u.email === email && u.password === password);
+    if(!user){
+      errorMsg.textContent = 'Invalid email or password.';
+      return;
+    }
+
+    // Save logged in user flag (just email for demo)
+    localStorage.setItem('loggedInUser', email);
+    // Redirect to dashboard
+    window.location.href = 'dashboard.html';
+  });
+</script>
+
+</body>
+</html>

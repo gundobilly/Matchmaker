@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Matchmaker | Admin Panel</title>
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f3f7ff;
+    margin: 0; padding: 0;
+  }
+  header {
+    background-color: #004aad;
+    color: white;
+    padding: 1rem 2rem;
+  }
+  nav {
+    display: flex;
+    justify-content: flex-start;
+    gap: 1rem;
+  }
+  nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+  nav a:hover, nav a.active {
+    background-color: #00337a;
+  }
+  main {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  section {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 0 15px #ccc;
+    padding: 1rem;
+    margin-bottom: 2rem;
+  }
+  h2 {
+    color: #004aad;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 0.5rem 0.8rem;
+    text-align: left;
+  }
+  button {
+    background-color: #004aad;
+    color: white;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 0.3rem;
+  }
+  button.deleteBtn {
+    background-color: #c00;
+  }
+  button.deleteBtn:hover {
+    background-color: #900;
+  }
+  button:hover {
+    background-color: #00337a;
+  }
+  form.edit-form {
+    margin-top: 1rem;
+  }
+  form.edit-form input,
+  form.edit-form select,
+  form.edit-form textarea {
+    width: 100%;
+    margin-top: 0.3rem;
+    padding: 0.4rem;
+    border-radius: 4px;
+    border: 1px solid #aaa;
+    font-size: 1rem;
+  }
+  form.edit-form label {
+    font-weight: 600;
+    margin-top: 1rem;
+    display: block;
+  }
+  form.edit-form button {
+    margin-top: 1rem;
+    width: auto;
+  }
+  .message {
+    margin-top: 1rem;
+    font-weight: 600;
+    color: green;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="reserved.html">Reserved Matches</a>
+    <a href="userRegistration.html">User Registration</a>
+    <a href="admin.html" class="active">Admin Panel</a>
+    <a href="#" id="logoutLink">Logout</a>
+  </nav>
+</header>
+
+<main>
+  <section id="usersSection">
+    <h2>Registered Users</h2>
+    <table id="usersTable">
+      <thead>
+        <tr>
+          <th>Name</th><th>Email</th><th>Phone</th><th>City</th><th>Age Range</th><th>Want Kids</th><th>Non-negotiables</th><th>Ideal Partner</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section id="reservedSection">
+    <h2>Reserved Matches</h2>
+    <table id="reservedTable">
+      <thead>
+        <tr>
+          <th>User 1</th><th>User 2</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section id="editSection" style="display:none;">
+    <h2>Edit User</h2>
+    <form id="editForm" class="edit-form">
+      <label for="editName">Name</label>
+      <input type="text" id="editName" required />
+
+      <label for="editEmail">Email</label>
+      <input type="email" id="editEmail" required readonly />
+
+      <label for="editPhone">Phone</label>
+      <input type="tel" id="editPhone" required />
+
+      <label for="editCity">City</label>
+      <input type="text" id="editCity" required />
+
+      <label for="editAgeRange">Age Range</label>
+      <select id="editAgeRange" required>
+        <option value="18-25">18-25</option>
+        <option value="26-35">26-35</option>
+        <option value="36-45">36-45</option>
+        <option value="46+">46+</option>
+      </select>
+
+      <label for="editWantKids">Want Kids</label>
+      <select id="editWantKids" required>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+        <option value="Maybe">Maybe</option>
+      </select>
+
+      <label for="editNonNegotiables">Non-negotiables</label>
+      <textarea id="editNonNegotiables" rows="3" required></textarea>
+
+      <label for="editIdealPartner">Ideal Partner</label>
+      <textarea id="editIdealPartner" rows="4" required></textarea>
+
+      <button type="submit">Save Changes</button>
+      <button type="button" id="cancelEditBtn" style="background:#c00; margin-left:10px;">Cancel</button>
+    </form>
+    <div class="message" id="editMessage"></div>
+  </section>
+</main>
+
+<script>
+  const logoutLink = document.getElementById('logoutLink');
+  logoutLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    localStorage.removeItem('loggedInUser');
+    window.location.href = 'login.html';
+  });
+
+  let users = JSON.parse(localStorage.getItem('users')) || [];
+  let reservedMatches = JSON.parse(localStorage.getItem('reservedMatches')) || [];
+
+  const usersTableBody = document.querySelector('#usersTable tbody');
+  const reservedTableBody = document.querySelector('#reservedTable tbody');
+  const editSection = document.getElementById('editSection');
+  const editForm = document.getElementById('editForm');
+  const editMessage = document.getElementById('editMessage');
+  const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+  function renderUsers() {
+    usersTableBody.innerHTML = '';
+    users.forEach(user => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${user.name}</td>
+        <td>${user.email}</td>
+        <td>${user.phone}</td>
+        <td>${user.city}</td>
+        <td>${user.ageRange}</td>
+        <td>${user.wantKids}</td>
+        <td>${user.nonNegotiables}</td>
+        <td>${user.idealPartner}</td>
+        <td>
+          <button class="editBtn" data-email="${user.email}">Edit</button>
+          <button class="deleteBtn" data-email="${user.email}">Delete</button>
+        </td>
+      `;
+      usersTableBody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.editBtn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const email = e.target.dataset.email;
+        startEditUser(email);
+      });
+    });
+
+    document.querySelectorAll('.deleteBtn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const email = e.target.dataset.email;
+        deleteUser(email);
+      });
+    });
+  }
+
+  function renderReserved() {
+    reservedTableBody.innerHTML = '';
+    if (reservedMatches.length === 0) {
+      reservedTableBody.innerHTML = '<tr><td colspan="3">No reserved matches.</td></tr>';
+      return;
+    }
+    reservedMatches.forEach(match => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${match.user1}</td>
+        <td>${match.user2}</td>
+        <td><button class="deleteReservedBtn" data-user1="${match.user1}" data-user2="${match.user2}">Delete</button></td>
+      `;
+      reservedTableBody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.deleteReservedBtn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const user1 = e.target.dataset.user1;
+        const user2 = e.target.dataset.user2;
+        deleteReservedMatch(user1, user2);
+      });
+    });
+  }
+
+  function startEditUser(email) {
+    editMessage.textContent = '';
+    editSection.style.display = 'block';
+    const user = users.find(u => u.email === email);
+    if (!user) return;
+    editForm.editName.value = user.name;
+    editForm.editEmail.value = user.email;
+    editForm.editPhone.value = user.phone;
+    editForm.editCity.value = user.city;
+    editForm.editAgeRange.value = user.ageRange;
+    editForm.editWantKids.value = user.wantKids;
+    editForm.editNonNegotiables.value = user.nonNegotiables;
+    editForm.editIdealPartner.value = user.idealPartner;
+  }
+
+  function deleteUser(email) {
+    if (!confirm(`Delete user with email: ${email}? This action cannot be undone.`)) return;
+    users = users.filter(u => u.email !== email);
+    localStorage.setItem('users', JSON.stringify(users));
+
+    reservedMatches = reservedMatches.filter(match => match.user1 !== email && match.user2 !== email);
+    localStorage.setItem('reservedMatches', JSON.stringify(reservedMatches));
+
+    renderUsers();
+    renderReserved();
+    alert('User and related matches deleted.');
+  }
+
+  function deleteReservedMatch(user1, user2) {
+    if (!confirm('Delete this reserved match?')) return;
+    reservedMatches = reservedMatches.filter(match => {
+      return !( (match.user1 === user1 && match.user2 === user2) || (match.user1 === user2 && match.user2 === user1) );
+    });
+    localStorage.setItem('reservedMatches', JSON.stringify(reservedMatches));
+    renderReserved();
+  }
+
+  editForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const email = editForm.editEmail.value;
+    const index = users.findIndex(u => u.email === email);
+    if (index === -1) {
+      editMessage.style.color = 'red';
+      editMessage.textContent = 'User not found.';
+      return;
+    }
+    users[index] = {
+      name: editForm.editName.value.trim(),
+      email,
+      phone: editForm.editPhone.value.trim(),
+      city: editForm.editCity.value.trim(),
+      ageRange: editForm.editAgeRange.value,
+      wantKids: editForm.editWantKids.value,
+      nonNegotiables: editForm.editNonNegotiables.value.trim(),
+      idealPartner: editForm.editIdealPartner.value.trim()
+    };
+    localStorage.setItem('users', JSON.stringify(users));
+    editMessage.style.color = 'green';
+    editMessage.textContent = 'User updated successfully.';
+    renderUsers();
+  });
+
+  cancelEditBtn.addEventListener('click', () => {
+    editSection.style.display = 'none';
+    editMessage.textContent = '';
+  });
+
+  renderUsers();
+  renderReserved();
+</script>
+
+</body>
+</html>
