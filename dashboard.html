@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Matchmaker | Dashboard</title>
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f3f7ff;
+    margin: 0; padding: 0;
+  }
+  header {
+    background-color: #004aad;
+    color: white;
+    padding: 1rem 2rem;
+  }
+  nav {
+    display: flex;
+    justify-content: flex-start;
+    gap: 1rem;
+  }
+  nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+  nav a:hover, nav a.active {
+    background-color: #00337a;
+  }
+  main {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  h1 {
+    color: #004aad;
+    margin-bottom: 1rem;
+  }
+  .user-list {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 0 15px #ccc;
+  }
+  .user-card {
+    border-bottom: 1px solid #ddd;
+    padding: 0.8rem 0;
+  }
+  .user-card:last-child {
+    border-bottom: none;
+  }
+  .user-card strong {
+    color: #004aad;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="dashboard.html" class="active">Dashboard</a>
+    <a href="reserved.html">Reserved Matches</a>
+    <a href="userRegistration.html">User Registration</a>
+    <a href="admin.html">Admin Panel</a>
+    <a href="#" id="logoutLink">Logout</a>
+  </nav>
+</header>
+
+<main>
+  <h1>Dashboard - User Profiles</h1>
+  <div class="user-list" id="userList">
+    <!-- User cards inserted here -->
+  </div>
+</main>
+
+<script>
+  // Highlight active nav link handled already by active class in HTML for dashboard
+
+  // Logout handler
+  const logoutLink = document.getElementById('logoutLink');
+  logoutLink.addEventListener('click', e => {
+    e.preventDefault();
+    localStorage.removeItem('loggedInUser');
+    window.location.href = 'login.html';
+  });
+
+  // Load users from localStorage and display
+  const userList = document.getElementById('userList');
+  const users = JSON.parse(localStorage.getItem('users')) || [];
+
+  if(users.length === 0){
+    userList.innerHTML = '<p>No users registered yet.</p>';
+  } else {
+    userList.innerHTML = '';
+    users.forEach(user => {
+      const div = document.createElement('div');
+      div.className = 'user-card';
+      div.innerHTML = `
+        <strong>${user.name}</strong> (${user.email})<br />
+        Phone: ${user.phone} | City: ${user.city} | Age Range: ${user.ageRange}<br />
+        Wants kids: ${user.wantKids}<br />
+        <em>Non-negotiables:</em> ${user.nonNegotiables}<br />
+        <em>Ideal Partner:</em> ${user.idealPartner}
+      `;
+      userList.appendChild(div);
+    });
+  }
+</script>
+
+</body>
+</html>
